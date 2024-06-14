@@ -1,0 +1,40 @@
+{
+  "expenses": [
+    {
+      "id": "46869445-5f9c-4650-941f-41bd9457bc07",
+      "month": 1,
+      "date": "2024-01-03",
+      "category": "개인사업",
+      "cost": 1000000,
+      "content": "테슬라 모델 3",
+      "createdBy": "Musk"
+    },
+    {
+      "id": "a5c0d8de-d010-4d07-9934-29765051a7ea",
+      "month": 1,
+      "date": "2024-01-07",
+      "category": "개인사업",
+      "cost": 1000,
+      "content": "X(구 트위터)",
+      "createdBy": "Musk"
+    },
+    {
+      "id": "0d0a966e-5c35-4bf0-aca4-f2b1265a432d",
+      "month": 1,
+      "date": "2024-01-13",
+      "category": "식비",
+      "cost": 2000,
+      "content": "메가커피",
+      "createdBy": "Rosie"
+    },
+    {
+      "id": "b82b213e-8164-4c89-94b0-7246cdcfc4f9",
+      "month": 1,
+      "date": "2024-01-21",
+      "category": "식비",
+      "cost": 412000,
+      "content": "BBQ",
+      "createdBy": "Me"
+    }
+  ]
+}

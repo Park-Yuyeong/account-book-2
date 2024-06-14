@@ -2,14 +2,14 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 const ExpenditureItem = ({ item }) => {
-  const { id, date, category, cost, content } = item;
+  const { id, date, category, cost, content, createdBy: nickname } = item;
 
   return (
     <Link to={`/detail/${id}`}>
       <StItemWrapper>
         <StItemContent>
           <span id="date">{date}</span>
-          <span id="content">{`${category} - ${content}`}</span>
+          <span id="content">{`${category} - ${content} (by ${nickname})`}</span>
         </StItemContent>
         <StItemCost>{`${cost} 원`}</StItemCost>
       </StItemWrapper>

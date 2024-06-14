@@ -1,14 +1,36 @@
+import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import api from "../../api/api";
 import ExpenditureItem from "../ExpenditureItem";
 
 const ExpenditureList = () => {
-  const itemList = useSelector((state) => state.expenditureSlice.expenditure);
   const selectedMonth = useSelector(
     (state) => state.selectedMonthSlice.selectedMonth
   );
 
-  const filteredList = itemList.filter((item) => item.month === selectedMonth);
+  const {
+    data: expenses,
+    isPending,
+    isError,
+  } = useQuery({
+    queryKey: ["expense", { list: true }],
+    queryFn: () => api.expense.getExpenses(),
+  });
+
+  const filteredList = expenses
+    ? expenses.filter((item) => item.month === selectedMonth)
+    : [];
+
+  if (isPending) {
+    return <StBlankDiv>Loading...</StBlankDiv>;
+  }
+
+  if (isError) {
+    return (
+      <StBlankDiv>지출 내역을 불러오는 도중 오류가 발생했습니다😢</StBlankDiv>
+    );
+  }
 
   return (
     <StListSection>

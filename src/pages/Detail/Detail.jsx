@@ -1,29 +1,69 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import {
-  deleteExpenditureItem,
-  updateExpenditureItem,
-} from "../../redux/slices/expenditure.slice";
+import api from "../../api/api";
 
 const Detail = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const detailId = useParams().id;
-
-  const dispatch = useDispatch();
-  const itemList = useSelector((state) => state.expenditureSlice.expenditure);
-  const detailItem = itemList.find((item) => item.id === detailId);
-
-  const { date, category, cost, content } = detailItem;
+  const nickname = useSelector((state) => state.authSlice.user.nickname);
 
   const refDate = useRef("");
   const refCategory = useRef("");
   const refCost = useRef(0);
   const refContent = useRef("");
 
+  const {
+    data: detailItem,
+    isPending,
+    isError,
+  } = useQuery({
+    queryKey: ["expense", detailId],
+    queryFn: () => api.expense.getExpenseItem(detailId),
+  });
+
+  const { mutateAsync: updateExpenseItem } = useMutation({
+    mutationFn: (data) => api.expense.updateExpenseItem(data),
+    onSuccess: () => {
+      alert("지출 데이터가 수정되었습니다");
+      queryClient.invalidateQueries(["expenses"]);
+
+      navigate("/");
+    },
+  });
+
+  const { mutateAsync: deleteExpenseItem } = useMutation({
+    mutationFn: (expenseId) => api.expense.deleteExpenseItem(expenseId),
+    onSuccess: () => {
+      alert("지출 데이터가 삭제되었습니다.");
+
+      navigate("/");
+    },
+  });
+
+  if (isPending) {
+    return <StDetailWrapper>Loading...</StDetailWrapper>;
+  }
+
+  if (isError) {
+    return (
+      <StDetailWrapper>
+        지출 내역을 불러오는 도중 오류가 발생했습니다😢
+      </StDetailWrapper>
+    );
+  }
+
+  if (!detailItem) {
+    return <StDetailWrapper>Loading...</StDetailWrapper>;
+  }
+
+  const { date, category, cost, content, createdBy } = detailItem;
+
   // 지출 내역 수정
-  const modifyAccountBookItem = () => {
+  const modifyAccountBookItem = async () => {
     const detailDate = refDate.current.value.trim();
     const detailCategory = refCategory.current.value.trim();
     const detailCost = refCost.current.value.trim();
@@ -44,10 +84,10 @@ const Detail = () => {
           cost: detailCost,
           content: detailContent,
           month: new Date(detailDate).getMonth() + 1,
+          createdBy,
         };
 
-        dispatch(updateExpenditureItem(changedItem));
-        navigate("/");
+        await updateExpenseItem(changedItem);
       } else {
         alert("수정이 취소되었습니다");
       }
@@ -57,11 +97,10 @@ const Detail = () => {
   };
 
   // 지출 내역 삭제
-  const deleteAccountBookItem = () => {
+  const deleteAccountBookItem = async () => {
     const check = confirm("삭제하시겠습니까?");
     if (check) {
-      dispatch(deleteExpenditureItem(detailId));
-      navigate("/");
+      await deleteExpenseItem(detailId);
     } else {
       alert("삭제가 취소되었습니다");
     }
@@ -115,12 +154,19 @@ const Detail = () => {
         />
       </StDiv>
       <StButtonDiv>
-        <StDetailPageButton onClick={modifyAccountBookItem}>
-          수정
-        </StDetailPageButton>
-        <StDetailPageButton onClick={deleteAccountBookItem}>
-          삭제
-        </StDetailPageButton>
+        {nickname === createdBy ? (
+          <>
+            <StDetailPageButton onClick={modifyAccountBookItem}>
+              수정
+            </StDetailPageButton>
+            <StDetailPageButton onClick={deleteAccountBookItem}>
+              삭제
+            </StDetailPageButton>
+          </>
+        ) : (
+          ""
+        )}
+
         <StDetailPageButton onClick={goToBack}>뒤로가기</StDetailPageButton>
       </StButtonDiv>
     </StDetailWrapper>

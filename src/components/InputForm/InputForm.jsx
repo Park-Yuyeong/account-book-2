@@ -1,19 +1,35 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import { v4 as uuid } from "uuid";
-import { createExpenditureItem } from "../../redux/slices/expenditure.slice";
+import api from "../../api/api";
 
 const InputForm = () => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const nickname = useSelector((state) => state.authSlice.user.nickname);
 
   const [date, setDate] = useState("");
   const [category, setCategory] = useState("");
   const [cost, setCost] = useState(0);
   const [content, setContent] = useState("");
 
+  const { mutateAsync: createExpenseItem } = useMutation({
+    mutationFn: (data) => api.expense.createExpenseItem(data),
+    onSuccess: () => {
+      alert("새로운 지출 데이터가 추가되었습니다.");
+      queryClient.invalidateQueries(["expenses"]);
+
+      // form 다시 빈칸으로
+      setDate("");
+      setCategory("");
+      setCost(0);
+      setContent("");
+    },
+  });
+
   // 새로운 지출 내역 추가
-  const addAccountBookItem = () => {
+  const addAccountBookItem = async () => {
     if (date.length && category.length && cost !== 0 && content.length) {
       const newItem = {
         id: uuid(),
@@ -22,13 +38,10 @@ const InputForm = () => {
         cost,
         content,
         month: new Date(date).getMonth() + 1,
+        createdBy: nickname,
       };
 
-      dispatch(createExpenditureItem(newItem));
-      setDate("");
-      setCategory("");
-      setCost(0);
-      setContent("");
+      await createExpenseItem(newItem);
     } else {
       alert("알맞은 지출 양식을 작성해주세요!");
     }
